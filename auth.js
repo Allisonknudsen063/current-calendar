@@ -3,10 +3,9 @@ const express = require('express');
 const pool = require('./db'); // Assuming you have a separate file for your MySQL connection pool
 const router = express.Router();
 
-
 // Route to serve the sign-in form
 router.get('/login', (req, res) => {
-  res.sendFile(__dirname + '/login.html');
+  res.render('login'); // Assuming 'login.ejs' is in your views directory
 });
 
 router.post('/login', (req, res) => {
@@ -35,12 +34,13 @@ router.post('/login', (req, res) => {
       if (password !== user.password) { // You should use a secure method like bcrypt for password hashing and comparison
         return res.status(401).send('Invalid username or password');
       }
-  
-      // At this point, the user is authenticated
-      req.session.userId = user.id; // Store the user's ID in the session
+      
+      // User is authenticated
+      req.session.loggedIn = true; // Set loggedIn to true to indicate user is authenticated
+      req.session.username = user.username; // Store the username in the session
       res.redirect('/dashboard'); // Redirect the user to the dashboard or any other page
     });
 
 });
 
-module.exports = router;  
+module.exports = router;

@@ -1,0 +1,77 @@
+<!-- views/dashboard.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <!-- Include FullCalendar library -->
+    <link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/5.10.0/main.min.css' rel='stylesheet' />
+</head>
+<body>
+    <h2>Welcome, <%= username %></h2>
+    <div id="calendar"></div>
+    
+    <!-- Include FullCalendar library script -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+    
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                // FullCalendar configuration options
+                initialView: 'dayGridMonth', // Set the initial view to month
+                events: '/api/events' // Fetch events specific to the logged-in user from backend API
+            });
+    
+            calendar.render(); // Render the calendar
+    
+            // Add event listener to the tracking button
+            document.getElementById('trackButton').addEventListener('click', function() {
+                // Determine if menstruation is currently being tracked
+                const isTracking = document.getElementById('trackButton').classList.contains('tracking');
+                
+                // Determine the action based on whether menstruation is currently being tracked
+                const action = isTracking ? 'stop' : 'start';
+                
+                // Send a POST request to the backend API endpoint for tracking menstruation
+                var selectedDate = calendar.getDate(); // Get the currently selected date from the calendar
+                fetch('/api/track', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        date: selectedDate.toISOString(), // Send the selected date in ISO format
+                        action: action // Specify the action: 'start' or 'stop'
+                    })
+                })
+                .then(response => {
+                    // Handle response from the backend
+                    if (response.ok) {
+                        // Toggle the tracking button state based on the action
+                        if (action === 'start') {
+                            document.getElementById('trackButton').classList.add('tracking');
+                        } else {
+                            document.getElementById('trackButton').classList.remove('tracking');
+                        }
+                        // Tracking successful
+                        console.log('Menstruation tracked successfully.');
+                    } else {
+                        // Error handling
+                        console.error('Error tracking menstruation:', response.statusText);
+                    }
+                })
+                .catch(error => {
+                    // Error handling for fetch request
+                    console.error('Error tracking menstruation:', error);
+                });
+            });
+        });
+    </script>
+    
+    <!-- Button for tracking menstruation -->
+    <button id="trackButton">Track Menstruation</button>
+</body>
+</html>
