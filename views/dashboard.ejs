@@ -6,10 +6,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Dashboard</title>
     <!-- Include FullCalendar library -->
-    <link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/5.10.0/main.min.css' rel='stylesheet' />
+    <link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.11.1/main.min.css' rel='stylesheet' />
+
+    <style>
+        body {
+            background-color: rgba(57, 96, 140, 0.579);
+            color: white;
+            font-family: monospace;
+        }
+        h2 {
+            font-size: 24px;
+            font-family: monospace;
+        }
+        #trackButton {
+            padding: 100px 120px; /* Add padding */
+            margin-top: 20px; /* Add margin to separate from other elements */
+            background-color: #7d8691; /* Green background color */
+            color: white; /* White text color */
+            border: none; /* Remove default button border */
+            border-radius: 5px; /* Add border radius for rounded corners */
+            cursor: pointer; /* Change cursor to pointer on hover */
+            transition: background-color 0.3s; /* Smooth transition for background color change */
+            font-size: 60px;
+            font-family: monospace;
+        }
+
+        #trackButton:hover {
+            background-color: #02724d; /* Darker green on hover */
+        }
+    </style>
+    </style>
 </head>
 <body>
-    <h2>Welcome, <%= username %></h2>
+    <h2>Welcome, <span style="font-size: 72px;"><%= username %></span></h2>
     <div id="calendar"></div>
     
     <!-- Include FullCalendar library script -->
@@ -37,7 +66,7 @@
                 
                 // Send a POST request to the backend API endpoint for tracking menstruation
                 var selectedDate = calendar.getDate(); // Get the currently selected date from the calendar
-                fetch('/api/track', {
+                fetch('./api/track', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

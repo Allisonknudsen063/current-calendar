@@ -38,6 +38,7 @@ router.post('/login', (req, res) => {
       // User is authenticated
       req.session.loggedIn = true; // Set loggedIn to true to indicate user is authenticated
       req.session.username = user.username; // Store the username in the session
+      req.session.name = user.firstname;
       res.redirect('/dashboard'); // Redirect the user to the dashboard or any other page
     });
 
