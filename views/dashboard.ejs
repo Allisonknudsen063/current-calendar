@@ -64,64 +64,54 @@
                 .then(trackedDays => {
                     // Map tracked days to FullCalendar events format
                     const trackedEvents = trackedDays.map(day => ({
-                        title: 'Tracked Day',
-                        start: day.date,
-                        allDay: true,
-                        extendedProps: {
-                            isTracked: true
-                        }
+                        title: 'Tracked Period',
+                        start: day.startDate,
+                        end: day.endDate,
+                        allDay: true
                     }));
                     // Add tracked events to the calendar
                     calendar.addEventSource(trackedEvents);
                 })
                 .catch(error => console.error('Error fetching tracked days:', error));
-
             calendar.render(); // Render the calendar
+
+            let startDate = null; // Variable to store the start date
 
             // Add event listener to the tracking button
             document.getElementById('trackButton').addEventListener('click', async function() {
-                // Determine if menstruation is currently being tracked
-                const isTracking = document.getElementById('trackButton').classList.contains('tracking');
-                
-                // Determine the action based on whether menstruation is currently being tracked
-                const action = isTracking ? 'stop' : 'start';
-                
-                // Send a POST request to the server-side route for tracking menstruation
-                var selectedDate = calendar.getDate(); // Get the currently selected date from the calendar
-                
-                try {
-                    const response = await fetch('/track', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            date: selectedDate.toISOString(), // Send the selected date in ISO format
-                            action: action // Specify the action: 'start' or 'stop'
-                        })
-                    });
+                if (startDate === null) {
+                    // Set the start date if it's not already set
+                    startDate = calendar.getDate(); // Get the current date from the calendar
+                    console.log('Start date set:', startDate);
+                } else {
+                    // Set the end date if the start date is already set
+                    const endDate = calendar.getDate(); // Get the current date from the calendar
+                    console.log('End date set:', endDate);
 
-                    if (response.ok) {
-                        // Toggle the tracking button state based on the action
-                        if (action === 'start') {
-                            document.getElementById('trackButton').classList.add('tracking');
-                        } else {
-                            document.getElementById('trackButton').classList.remove('tracking');
-                        }
-                        // Tracking successful
-                        console.log('Menstruation tracked successfully.');
-                    } else {
-                        // Error handling
-                        console.error('Error tracking menstruation:', response.statusText);
+                    // Send a POST request to the server-side route for tracking menstruation
+                    try {
+                        const response = await fetch('/track', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                startDate: startDate.toISOString(),
+                                endDate: endDate.toISOString()
+                            })
+                        });
+
+                        // Handle the response...
+                    } catch (error) {
+                        console.error('Error tracking menstruation:', error);
                     }
-                } catch (error) {
-                    // Error handling for fetch request
-                    console.error('Error tracking menstruation:', error);
+
+                    // Reset the start date for the next tracking session
+                    startDate = null;
                 }
             });
         });
     </script>
-    
     <!-- Button for tracking menstruation -->
     <button id="trackButton">Track Menstruation</button>
 </body>
