@@ -1,7 +1,8 @@
-//user authentication
 const express = require('express');
-const pool = require('./db'); // Assuming you have a separate file for your MySQL connection pool
-const router = express.Router();
+const router = express.Router(); // Create a router instance
+
+//user authentication
+const pool = require('./db'); 
 
 // Route to serve the sign-in form
 router.get('/login', (req, res) => {
@@ -38,7 +39,7 @@ router.post('/login', (req, res) => {
       // User is authenticated
       req.session.loggedIn = true; // Set loggedIn to true to indicate user is authenticated
       req.session.username = user.username; // Store the username in the session
-      req.session.name = user.firstname;
+      req.session.userId = user.userId; // Store the userId in the session
       res.redirect('/dashboard'); // Redirect the user to the dashboard or any other page
     });
 

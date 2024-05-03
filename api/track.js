@@ -1,10 +1,12 @@
 // track.js
 const express = require('express');
-const router = express.Router();
 const pool = require('../db');
 
+// Create an instance of the express router
+const router = express.Router();
+
 // Define the POST endpoint for tracking menstruation
-router.post('/api/track', (req, res) => {
+router.post('/', (req, res) => {
     // Extract the date and action from the request body
     const { date, action } = req.body;
     
@@ -28,5 +30,22 @@ router.post('/api/track', (req, res) => {
         res.status(200).json({ message: 'Menstruation tracked successfully', date });
     });
 });
+// GET endpoint to retrieve tracked days
+router.get('/', (req, res) => {
+    // Retrieve the user's ID from the session
+    const userId = req.session.userId;
 
+    // Query the database to retrieve tracked days for the user
+    pool.query('SELECT date FROM trackeddates WHERE userId = ?', [userId], (error, results) => {
+        if (error) {
+            console.error('Error retrieving tracked days:', error);
+            return res.status(500).json({ message: 'Internal Server Error' });
+        }
+
+        // Send the retrieved tracked days as a response
+        res.status(200).json(results);
+    });
+});
+
+// Export the router
 module.exports = router;

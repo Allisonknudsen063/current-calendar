@@ -35,7 +35,6 @@
             background-color: #02724d; /* Darker green on hover */
         }
     </style>
-    </style>
 </head>
 <body>
     <h2>Welcome, <span style="font-size: 72px;"><%= username %></span></h2>
@@ -47,37 +46,61 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');
-    
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 // FullCalendar configuration options
                 initialView: 'dayGridMonth', // Set the initial view to month
-                events: '/api/events' // Fetch events specific to the logged-in user from backend API
+                events: '/api/events', // Fetch events specific to the logged-in user from backend API
+                eventDidMount: function(info) {
+                    // Add custom styling for tracked days
+                    if (info.event.extendedProps.isTracked) {
+                        info.el.style.backgroundColor = 'red';
+                    }
+                }
             });
-    
+
+            // Fetch tracked days from the server and render them as events
+            fetch('/track')
+                .then(response => response.json())
+                .then(trackedDays => {
+                    // Map tracked days to FullCalendar events format
+                    const trackedEvents = trackedDays.map(day => ({
+                        title: 'Tracked Day',
+                        start: day.date,
+                        allDay: true,
+                        extendedProps: {
+                            isTracked: true
+                        }
+                    }));
+                    // Add tracked events to the calendar
+                    calendar.addEventSource(trackedEvents);
+                })
+                .catch(error => console.error('Error fetching tracked days:', error));
+
             calendar.render(); // Render the calendar
-    
+
             // Add event listener to the tracking button
-            document.getElementById('trackButton').addEventListener('click', function() {
+            document.getElementById('trackButton').addEventListener('click', async function() {
                 // Determine if menstruation is currently being tracked
                 const isTracking = document.getElementById('trackButton').classList.contains('tracking');
                 
                 // Determine the action based on whether menstruation is currently being tracked
                 const action = isTracking ? 'stop' : 'start';
                 
-                // Send a POST request to the backend API endpoint for tracking menstruation
+                // Send a POST request to the server-side route for tracking menstruation
                 var selectedDate = calendar.getDate(); // Get the currently selected date from the calendar
-                fetch('./api/track', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        date: selectedDate.toISOString(), // Send the selected date in ISO format
-                        action: action // Specify the action: 'start' or 'stop'
-                    })
-                })
-                .then(response => {
-                    // Handle response from the backend
+                
+                try {
+                    const response = await fetch('/track', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            date: selectedDate.toISOString(), // Send the selected date in ISO format
+                            action: action // Specify the action: 'start' or 'stop'
+                        })
+                    });
+
                     if (response.ok) {
                         // Toggle the tracking button state based on the action
                         if (action === 'start') {
@@ -91,11 +114,10 @@
                         // Error handling
                         console.error('Error tracking menstruation:', response.statusText);
                     }
-                })
-                .catch(error => {
+                } catch (error) {
                     // Error handling for fetch request
                     console.error('Error tracking menstruation:', error);
-                });
+                }
             });
         });
     </script>

@@ -3,17 +3,7 @@
 // Port for the site
 const port = 3000; 
 
-// Page routes
-const authRouter = require('./auth');
 const bodyParser = require('body-parser');
-const dashboardRouter = require('./dashboard')
-
-// API routes
-const trackRouter = require('./api/track'); 
-//const eventsRouter = require('./api/events'); //commented out until there is functionality
-
-// Database pool
-const pool = require('./db')
 
 // Express app
 const express = require('express');
@@ -24,6 +14,15 @@ app.set('view engine', 'ejs');
 
 // Express-session will hold session data while the user is logged in
 const session = require('express-session');
+// Database pool
+const pool = require('./db')
+
+// Page routes
+const authRouter = require('./auth');
+const dashboardRouter = require('./dashboard')
+const trackRouter = require('./api/track'); 
+//const eventsRouter = require('./api/events');
+
 
 // Use session middleware
 app.use(session({
@@ -48,17 +47,17 @@ app.get('/data', (req, res) => {
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+// Mount the track router 
+app.use('/track', trackRouter);
+
+//app.use('/api/events', eventsRouter);
+
 // Mount the auth routes under '/auth'
 app.use('/auth', authRouter);
 
 // Mount the dashboard routes under '/dashboard'
 app.use('/dashboard', dashboardRouter);
 
-// Mount the track router under the '/api' path
-app.use('/api/track', trackRouter);
-
-//Mount the events router under the '/api/ path
-//app.use('/api/events', eventsRouter) //commented out until there is functionality
 
 // Start the server
 app.listen(port, () => {
