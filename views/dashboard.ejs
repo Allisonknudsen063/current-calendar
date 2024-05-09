@@ -19,7 +19,7 @@
             font-family: monospace;
         }
         #trackButton {
-            padding: 100px 120px; /* Add padding */
+            padding: 50px 70px; /* Add padding */
             margin-top: 20px; /* Add margin to separate from other elements */
             background-color: #7d8691; /* Green background color */
             color: white; /* White text color */
@@ -37,7 +37,9 @@
     </style>
 </head>
 <body>
-    <h2>Welcome, <span style="font-size: 72px;"><%= username %></span></h2>
+    <h2>Welcome, <span style="font-size: 72px;"><%= firstname %></span></h2>
+    <!-- Button for tracking menstruation -->
+    <button id="trackButton">Track Menstruation</button>
     <div id="calendar"></div>
     
     <!-- Include FullCalendar library script -->
@@ -73,46 +75,68 @@
                     calendar.addEventSource(trackedEvents);
                 })
                 .catch(error => console.error('Error fetching tracked days:', error));
-            calendar.render(); // Render the calendar
 
-            let startDate = null; // Variable to store the start date
+            // Fetch predicted periods from the server and render them as events
+            fetch('/predictedperiods') // Assuming you have an endpoint to fetch predicted periods
+                .then(response => response.json())
+                .then(predictedPeriods => {
+                    // Map predicted periods to FullCalendar events format
+                    const predictedEvents = predictedPeriods.map(period => ({
+                        title: 'Predicted Period',
+                        start: period.startDate,
+                        allDay: true
+                    }));
+                    // Add predicted events to the calendar
+                    calendar.addEventSource(predictedEvents);
+                })
+                .catch(error => console.error('Error fetching predicted periods:', error));
+
+            calendar.render(); // Render the calendar
 
             // Add event listener to the tracking button
             document.getElementById('trackButton').addEventListener('click', async function() {
-                if (startDate === null) {
-                    // Set the start date if it's not already set
-                    startDate = calendar.getDate(); // Get the current date from the calendar
-                    console.log('Start date set:', startDate);
-                } else {
-                    // Set the end date if the start date is already set
-                    const endDate = calendar.getDate(); // Get the current date from the calendar
-                    console.log('End date set:', endDate);
+                // Determine if menstruation is currently being tracked
+                const isTracking = document.getElementById('trackButton').classList.contains('tracking');
+                
+                // Determine the action based on whether menstruation is currently being tracked
+                const action = isTracking ? 'stop' : 'start';
+                
+                // Send a POST request to the server-side route for tracking menstruation
+                const selectedDate = calendar.getDate(); // Get the currently selected date from the calendar
 
-                    // Send a POST request to the server-side route for tracking menstruation
-                    try {
-                        const response = await fetch('/track', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                startDate: startDate.toISOString(),
-                                endDate: endDate.toISOString()
-                            })
-                        });
+                try {
+                    const response = await fetch('/track', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            startDate: selectedDate.toISOString(), // Send the selected date in ISO format
+                            endDate: selectedDate.toISOString(), // Send the selected date in ISO format
+                            action: action // Specify the action: 'start' or 'stop'
+                        })
+                    });
 
-                        // Handle the response...
-                    } catch (error) {
-                        console.error('Error tracking menstruation:', error);
+                    if (response.ok) {
+                        // Toggle the tracking button state based on the action
+                        if (action === 'start') {
+                            document.getElementById('trackButton').classList.add('tracking');
+                        } else {
+                            document.getElementById('trackButton').classList.remove('tracking');
+                        }
+                        // Tracking successful
+                        console.log('Menstruation tracked successfully.');
+                    } else {
+                        // Error handling
+                        console.error('Error tracking menstruation:', response.statusText);
                     }
-
-                    // Reset the start date for the next tracking session
-                    startDate = null;
+                } catch (error) {
+                    // Error handling for fetch request
+                    console.error('Error tracking menstruation:', error);
                 }
             });
         });
     </script>
-    <!-- Button for tracking menstruation -->
-    <button id="trackButton">Track Menstruation</button>
+
 </body>
 </html>

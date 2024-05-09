@@ -16,7 +16,8 @@ function isAuthenticated(req, res, next) {
 router.get('/', isAuthenticated, (req, res) => {
     // Render the dashboard.ejs view with user-specific information
     const username = req.session.username;
-    res.render('dashboard', { username: username });
+    const firstname = req.session.firstname;
+    res.render('dashboard', { firstname: firstname });
 });
 
 module.exports = router;

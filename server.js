@@ -19,9 +19,9 @@ const pool = require('./db')
 
 // Page routes
 const authRouter = require('./auth');
-const dashboardRouter = require('./dashboard')
+const dashboardRouter = require('./dashboard');
 const trackRouter = require('./api/track'); 
-//const eventsRouter = require('./api/events');
+const predictionRouter = require('./api/predictedperiods');
 
 
 // Use session middleware
@@ -50,7 +50,8 @@ app.use(bodyParser.json());
 // Mount the track router 
 app.use('/track', trackRouter);
 
-//app.use('/api/events', eventsRouter);
+//Mount the predictedperiods router
+app.use('/predictedperiods', predictionRouter);
 
 // Mount the auth routes under '/auth'
 app.use('/auth', authRouter);
