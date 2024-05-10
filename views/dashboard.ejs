@@ -1,0 +1,171 @@
+<!-- views/dashboard.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <!-- Include FullCalendar library -->
+    <link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.11.1/main.min.css' rel='stylesheet' />
+
+    <style>
+        body {
+            background-color: rgba(57, 96, 140, 0.579);
+            color: white;
+            font-family: monospace;
+        }
+        h2 {
+            font-size: 24px;
+            font-family: monospace;
+        }
+        #startTrackButton {
+            padding: 50px 70px; /* Add padding */
+            margin-top: 20px; /* Add margin to separate from other elements */
+            background-color: #7d8691; /* Green background color */
+            color: white; /* White text color */
+            border: none; /* Remove default button border */
+            border-radius: 5px; /* Add border radius for rounded corners */
+            cursor: pointer; /* Change cursor to pointer on hover */
+            transition: background-color 0.3s; /* Smooth transition for background color change */
+            font-size: 60px;
+            font-family: monospace;
+        }
+
+        #startTrackButton:hover {
+            background-color: #02724d; /* Darker green on hover */
+        }
+        #stopTrackButton {
+            padding: 50px 70px; /* Add padding */
+            margin-top: 20px; /* Add margin to separate from other elements */
+            background-color: #7d8691; /* Green background color */
+            color: white; /* White text color */
+            border: none; /* Remove default button border */
+            border-radius: 5px; /* Add border radius for rounded corners */
+            cursor: pointer; /* Change cursor to pointer on hover */
+            transition: background-color 0.3s; /* Smooth transition for background color change */
+            font-size: 60px;
+            font-family: monospace;
+        }
+
+        #stopTrackButton:hover {
+            background-color: #02724d; /* Darker green on hover */
+        }
+    </style>
+</head>
+<body>
+    <h2>Welcome, <span style="font-size: 72px;"><%= firstname %></span></h2>
+    <!-- Button for tracking menstruation -->
+    <button id="startTrackButton">Start Tracking</button>
+    <button id="stopTrackButton">Stop Tracking</button>
+
+    <div id="calendar"></div>
+    
+    <!-- Include FullCalendar library script -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        // FullCalendar configuration options
+        initialView: 'dayGridMonth', // Set the initial view to month
+        events: '/api/events', // Fetch events specific to the logged-in user from backend API
+        eventDidMount: function(info) {
+            // Add custom styling for tracked days
+            if (info.event.extendedProps.isTracked) {
+                info.el.style.backgroundColor = 'grey';
+            }
+        }
+    });
+
+
+
+    fetch('/track/days')
+    .then(response => response.json())
+    .then(trackedDays => {
+        // Map tracked days to FullCalendar events format
+        const trackedEvents = trackedDays.map(day => ({
+            title: 'Tracked Period',
+            start: day.startDate, // Start date
+            end: day.endDate, // End date
+            allDay: true,
+            extendedProps: {
+                isTracked: true
+            }
+        }));
+        // Add tracked events to the calendar
+        calendar.addEventSource(trackedEvents);
+    })
+    .catch(error => console.error('Error fetching tracked days:', error));
+            calendar.render(); // Render the calendar
+
+    // Fetch predicted periods from the server and render them as events
+    fetch('/predictedperiods') // Assuming you have an endpoint to fetch predicted periods
+        .then(response => response.json())
+        .then(predictedPeriods => {
+            // Map predicted periods to FullCalendar events format
+            const predictedEvents = predictedPeriods.map(period => ({
+                title: 'Predicted Period',
+                start: period.startDate,
+                allDay: true
+            }));
+            // Add predicted events to the calendar
+            calendar.addEventSource(predictedEvents);
+        })
+        .catch(error => console.error('Error fetching predicted periods:', error));
+
+    let isTracking = false; // Variable to track if menstruation is being tracked
+    let startDate = null; // Variable to store the start date
+
+    document.getElementById('startTrackButton').addEventListener('click', async function() {
+        // Send a POST request to start tracking
+        const selectedDate = calendar.getDate(); // Get the currently selected date from the calendar
+        try {
+            const response = await fetch('/track/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    date: selectedDate.toISOString() // Send the selected date in ISO format
+                })
+            });
+
+            if (response.ok) {
+                console.log('Start date tracked successfully.');
+            } else {
+                console.error('Error tracking start date:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error tracking start date:', error);
+        }
+    });
+
+    document.getElementById('stopTrackButton').addEventListener('click', async function() {
+        // Send a POST request to stop tracking
+        const selectedDate = calendar.getDate(); // Get the currently selected date from the calendar
+        try {
+            const response = await fetch('/track/stop', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    date: selectedDate.toISOString() // Send the selected date in ISO format
+                })
+            });
+
+            if (response.ok) {
+                console.log('End date tracked successfully.');
+            } else {
+                console.error('Error tracking end date:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error tracking end date:', error);
+        }
+    });
+});  
+
+    </script>
+
+</body>
+</html>

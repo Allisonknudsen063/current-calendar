@@ -1,0 +1,24 @@
+{
+  "dependencies": {
+    "express": "^4.19.2",
+    "mysql2": "^3.9.6"
+  },
+  "name": "current-calendar",
+  "version": "1.0.0",
+  "description": "Web Application for Allison Knudsen's 2024 Capstone Project at CSU Channel Islands. Web Application is basic period tracker with gender neutral oceanic themes.",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Allisonknudsen063/current-calendar.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Allisonknudsen063/current-calendar/issues"
+  },
+  "homepage": "https://github.com/Allisonknudsen063/current-calendar#readme"
+}
